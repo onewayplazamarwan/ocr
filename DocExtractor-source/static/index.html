@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مستخرج بيانات الوثائق</title>
+<style>
+:root{--bg:#eef2f8;--card:#fff;--tx:#1b1f27;--mu:#667085;--bd:#e1e6ee;--ac:#1e5aa8;--acx:#fff;--gold:#e0a93b;--ok:#13795b;--okb:#e3f6ee;--warn:#b54708;--warnb:#fff4e0;--bad:#b42318;--badb:#fde8e6;--mrz:#0d1522}
+@media (prefers-color-scheme:dark){:root{--bg:#0f141c;--card:#18202c;--tx:#eef0f4;--mu:#9aa4b5;--bd:#2a3445;--ac:#5b9bef;--acx:#0c1626;--ok:#5fd3a6;--okb:#12382c;--warn:#f5b45a;--warnb:#3a2b12;--bad:#ff8a80;--badb:#3d1a18}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;line-height:1.6}
+.hero{position:relative;background:radial-gradient(circle at 15% 20%,rgba(224,169,59,.25),transparent 40%),radial-gradient(circle at 85% 80%,rgba(255,255,255,.12),transparent 45%),linear-gradient(135deg,#0a1b36,#1e5aa8);color:#fff;text-align:center;padding:34px 16px 70px}
+.hero svg{width:88px;margin-bottom:8px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.35))}
+.hero h1{font-size:1.7rem;margin:0 0 6px}.hero p{margin:0 auto;max-width:540px;opacity:.9}
+.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.chips span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:3px 14px;font-size:.82rem}
+.lang{position:absolute;top:12px;inset-inline-end:14px;display:flex;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:2px}
+.lang button{background:transparent;color:#fff;padding:3px 12px;font-size:.8rem;border-radius:16px;box-shadow:none}
+.lang button.on{background:#fff;color:#0a1b36}
+main{max-width:800px;margin:-40px auto 0;padding:0 14px 40px;position:relative}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 10px 28px rgba(10,27,54,.10)}
+#drop{border:2px dashed var(--bd);border-radius:14px;padding:26px 12px;text-align:center;cursor:pointer;color:var(--mu);background:linear-gradient(180deg,transparent,rgba(30,90,168,.05));transition:.15s}
+#drop:hover,#drop.over{border-color:var(--ac);color:var(--ac);background:rgba(30,90,168,.08)}
+#drop::before{content:"";display:block;width:44px;height:44px;margin:0 auto 10px;background:var(--ac);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 16V4m0 0l-4 4m4-4l4 4M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 16V4m0 0l-4 4m4-4l4 4M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
+.pv{margin-top:14px;text-align:center}
+#preview{max-width:100%;max-height:360px;border-radius:12px;border:1px solid var(--bd);background:#000}
+button{font:inherit;background:var(--ac);color:var(--acx);border:0;border-radius:10px;padding:10px 18px;cursor:pointer;box-shadow:0 4px 12px rgba(30,90,168,.22)}
+button.sec{background:transparent;color:var(--tx);border:1px solid var(--bd);box-shadow:none}
+button:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.row.c{justify-content:center}
+.ib{padding:6px 14px;font-size:1.1rem;line-height:1.2}
+#bar{height:7px;background:var(--bd);border-radius:5px;margin-top:14px;overflow:hidden;display:none}
+#bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--ac));transition:width .25s}
+#msg{color:var(--mu);margin-top:8px;font-size:.92rem;min-height:1.4em}.err{color:var(--bad)!important}
+.tips{margin-top:12px;font-size:.85rem;color:var(--mu)}
+.tips summary{cursor:pointer;font-weight:600;color:var(--tx)}
+.tips ul{margin:6px 0 0;padding-inline-start:20px}
+.head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px}
+.tag{display:inline-block;background:var(--gold);color:#241a05;font-weight:700;border-radius:20px;padding:3px 14px}
+.pill{display:inline-block;border-radius:20px;padding:3px 12px;font-size:.8rem;font-weight:600;border:1px solid transparent}
+.pill.ok{background:var(--okb);color:var(--ok)}.pill.warn{background:var(--warnb);color:var(--warn)}.pill.bad{background:var(--badb);color:var(--bad)}.pill.mu{background:var(--bg);color:var(--mu);border-color:var(--bd)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:12px 0 4px}
+.fact{background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;min-width:0}
+.fact small{display:block;color:var(--mu);font-size:.75rem}
+.fact b{display:block;font-size:1.02rem;word-break:break-word;unicode-bidi:plaintext}
+.fact .pill{margin-top:4px}
+h2{font-size:1.05rem;margin:0 0 10px;border-inline-start:4px solid var(--gold);padding-inline-start:8px}
+.fr{display:grid;grid-template-columns:minmax(120px,32%) 1fr auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd)}
+.fr:last-child{border-bottom:0}
+.fl{color:var(--mu);font-weight:600;font-size:.9rem}
+.fl .pill{margin-inline-start:6px;font-size:.7rem;padding:1px 8px}
+.fv{font:inherit;color:var(--tx);background:transparent;border:1px solid transparent;border-radius:8px;padding:6px 8px;width:100%;unicode-bidi:plaintext}
+.fv:hover,.fv:focus{border-color:var(--bd);background:var(--bg);outline:0}
+html[dir=rtl] .fv.num{direction:ltr;text-align:right}html[dir=ltr] .fv.num{direction:ltr;text-align:left}
+.cpb{padding:4px 12px;font-size:.8rem;border-radius:8px;background:transparent;color:var(--ac);border:1px solid var(--ac);box-shadow:none}
+.cpb.ok{background:var(--ac);color:var(--acx)}
+.mrz{direction:ltr;text-align:left;font:.82rem/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--mrz);color:#cfe3ff;padding:12px;border-radius:12px;overflow-x:auto;white-space:pre;letter-spacing:.06em}
+pre{white-space:pre-wrap;direction:auto;unicode-bidi:plaintext;margin:0;font:.88rem/1.7 ui-monospace,Menlo,Consolas,monospace;background:var(--bg);padding:12px;border-radius:12px;border:1px solid var(--bd);max-height:340px;overflow:auto}
+.note{font-size:.82rem;color:var(--mu)}
+footer{text-align:center;color:var(--mu);font-size:.88rem;margin-top:26px;padding-top:16px;border-top:1px solid var(--bd)}footer b{color:var(--tx)}
+@media(max-width:520px){.fr{grid-template-columns:1fr auto}.fl{grid-column:1/-1}.hero h1{font-size:1.4rem}}
+</style>
+</head>
+<body>
+<header class="hero">
+<div class="lang"><button data-l="ar">عربي</button><button data-l="en">English</button></div>
+<svg viewBox="0 0 120 80" aria-hidden="true"><rect x="6" y="8" width="108" height="64" rx="9" fill="#fff"/><rect x="6" y="8" width="108" height="15" rx="9" fill="#e0a93b"/><rect x="6" y="16" width="108" height="7" fill="#e0a93b"/><circle cx="34" cy="43" r="9" fill="#1e5aa8"/><path d="M18 66c2-12 9-17 16-17s14 5 16 17z" fill="#1e5aa8"/><rect x="62" y="36" width="40" height="5" rx="2.5" fill="#9db7d9"/><rect x="62" y="46" width="32" height="5" rx="2.5" fill="#c6d5ea"/><rect x="62" y="56" width="36" height="5" rx="2.5" fill="#c6d5ea"/><rect x="2" y="38" width="116" height="3" rx="1.5" fill="#e0a93b" opacity=".85"/></svg>
+<h1 data-t="title"></h1><p data-t="sub"></p>
+<div class="chips"><span data-t="c1"></span><span data-t="c2"></span><span data-t="c3"></span><span data-t="c4"></span></div>
+</header>
+<main>
+<section class="card">
+  <div id="drop" tabindex="0"><span data-t="drop"></span><br><span class="note" data-t="dropn"></span></div>
+  <input id="file" type="file" accept="image/*" hidden>
+  <input id="cam" type="file" accept="image/*" capture="environment" hidden>
+  <div class="pv" id="pv" hidden>
+    <canvas id="preview"></canvas>
+    <div class="row c"><button class="sec ib" id="rl" aria-label="rotate left">⟲</button><button class="sec ib" id="rr" aria-label="rotate right">⟳</button></div>
+  </div>
+  <div class="row"><button id="go" data-t="go" disabled></button><button id="camb" class="sec" data-t="cam"></button><button id="clr" class="sec" data-t="clr" disabled></button></div>
+  <div id="bar"><i></i></div><div id="msg"></div>
+  <details class="tips"><summary data-t="tipsT"></summary><ul id="tips"></ul></details>
+</section>
+
+<section id="out" hidden>
+  <div class="card">
+    <div class="head"><span class="tag" id="dtype"></span><span class="pill" id="pconf"></span><span class="pill" id="pmrz"></span></div>
+    <div class="facts" id="facts"></div>
+  </div>
+  <div class="card"><h2 data-t="all"></h2><div id="fields"></div><div class="note" data-t="editn" style="margin-top:8px"></div></div>
+  <div class="card" id="mrzCard" hidden><h2>MRZ</h2><div class="mrz" id="mrz"></div><div class="note" id="mrzn" style="margin-top:8px"></div></div>
+  <div class="card"><h2 data-t="full"></h2><pre id="raw"></pre></div>
+  <div class="card"><div class="row" style="margin-top:0"><button id="cpAll" data-t="cpAll"></button><button class="sec" id="dlJ" data-t="dlJ"></button><button class="sec" id="dlC" data-t="dlC"></button></div></div>
+</section>
+<p class="note" data-t="priv"></p>
+<footer><span data-t="rights"></span> © 2026 <b>Marwan Elgamal</b></footer>
+</main>
+
+<script id="core">
+(function(g){
+'use strict';
+function p2(n){return ('0'+n).slice(-2)}
+function west(s){return String(s).replace(/[٠-٩]/g,function(d){return d.charCodeAt(0)-1632}).replace(/[۰-۹]/g,function(d){return d.charCodeAt(0)-1776})}
+function nAr(s){return String(s||'').toLowerCase().replace(/[\u064B-\u065F\u0670\u0640]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/[:：.,;|\/\\()\[\]{}'"«»_\-–—]+/g,' ').replace(/\s+/g,' ').trim()}
+function lev(a,b){var m=a.length,n=b.length,d=[],i,j;if(!m)return n;if(!n)return m;for(j=0;j<=n;j++)d[j]=j;for(i=1;i<=m;i++){var prev=d[0];d[0]=i;for(j=1;j<=n;j++){var t=d[j];d[j]=Math.min(d[j]+1,d[j-1]+1,prev+(a.charAt(i-1)===b.charAt(j-1)?0:1));prev=t}}return d[n]}
+function near(a,b){if(a===b)return true;var tol=b.length>=9?2:b.length>=5?1:0;return tol>0&&Math.abs(a.length-b.length)<=tol&&lev(a,b)<=tol}
+
+/* ---------- countries ---------- */
+var C={},RV={};
+("EGY=Egypt|مصر;QAT=Qatar|قطر;SAU=Saudi Arabia|السعودية;ARE=United Arab Emirates|الإمارات;KWT=Kuwait|الكويت;BHR=Bahrain|البحرين;OMN=Oman|عُمان;JOR=Jordan|الأردن;LBN=Lebanon|لبنان;SYR=Syria|سوريا;IRQ=Iraq|العراق;YEM=Yemen|اليمن;PSE=Palestine|فلسطين;LBY=Libya|ليبيا;TUN=Tunisia|تونس;DZA=Algeria|الجزائر;MAR=Morocco|المغرب;SDN=Sudan|السودان;SSD=South Sudan|جنوب السودان;SOM=Somalia|الصومال;DJI=Djibouti|جيبوتي;COM=Comoros|جزر القمر;MRT=Mauritania|موريتانيا;IND=India|الهند;PAK=Pakistan|باكستان;BGD=Bangladesh|بنجلاديش;LKA=Sri Lanka|سريلانكا;NPL=Nepal|نيبال;PHL=Philippines|الفلبين;IDN=Indonesia|إندونيسيا;MYS=Malaysia|ماليزيا;THA=Thailand|تايلاند;VNM=Vietnam|فيتنام;JPN=Japan|اليابان;KOR=South Korea|كوريا الجنوبية;SGP=Singapore|سنغافورة;TUR=Turkey|تركيا;IRN=Iran|إيران;AFG=Afghanistan|أفغانستان;ETH=Ethiopia|إثيوبيا;ERI=Eritrea|إريتريا;KEN=Kenya|كينيا;UGA=Uganda|أوغندا;TZA=Tanzania|تنزانيا;NGA=Nigeria|نيجيريا;GHA=Ghana|غانا;SEN=Senegal|السنغال;CMR=Cameroon|الكاميرون;TCD=Chad|تشاد;NER=Niger|النيجر;MLI=Mali|مالي;ZAF=South Africa|جنوب أفريقيا;USA=United States|الولايات المتحدة;GBR=United Kingdom|المملكة المتحدة;CAN=Canada|كندا;AUS=Australia|أستراليا;BRA=Brazil|البرازيل;FRA=France|فرنسا;DEU=Germany|ألمانيا;D=Germany|ألمانيا;ITA=Italy|إيطاليا;ESP=Spain|إسبانيا;PRT=Portugal|البرتغال;NLD=Netherlands|هولندا;BEL=Belgium|بلجيكا;CHE=Switzerland|سويسرا;AUT=Austria|النمسا;SWE=Sweden|السويد;NOR=Norway|النرويج;GRC=Greece|اليونان;CYP=Cyprus|قبرص;UKR=Ukraine|أوكرانيا;RUS=Russia|روسيا;CHN=China|الصين;KAZ=Kazakhstan|كازاخستان;UZB=Uzbekistan|أوزبكستان;AZE=Azerbaijan|أذربيجان;ARM=Armenia|أرمينيا;MMR=Myanmar|ميانمار").split(';').forEach(function(x){var a=x.split('='),b=a[1].split('|');C[a[0]]={en:b[0],ar:b[1]};RV[nAr(b[0])]=C[a[0]];RV[nAr(b[1])]=C[a[0]]});
+("EGY=egyptian|مصري|مصريه;QAT=qatari|قطري|قطريه;SAU=saudi|سعودي|سعوديه;ARE=emirati|اماراتي|اماراتيه;KWT=kuwaiti|كويتي|كويتيه;BHR=bahraini|بحريني;OMN=omani|عماني;JOR=jordanian|اردني;LBN=lebanese|لبناني;SYR=syrian|سوري;IRQ=iraqi|عراقي;YEM=yemeni|يمني;PSE=palestinian|فلسطيني;LBY=libyan|ليبي;TUN=tunisian|تونسي;DZA=algerian|جزائري;MAR=moroccan|مغربي;SDN=sudanese|سوداني;IND=indian|هندي;PAK=pakistani|باكستاني;BGD=bangladeshi|بنغالي;PHL=filipino|فلبيني;NPL=nepali|نيبالي;LKA=sri lankan|سريلانكي;TUR=turkish|تركي;IRN=iranian|ايراني").split(';').forEach(function(x){var a=x.split('='),b=a[1].split('|');b.forEach(function(w){RV[nAr(w)]=C[a[0]]})});
+function country(c){c=String(c||'').replace(/</g,'').trim();if(!c)return null;return C[c]||{en:c,ar:c}}
+function natLookup(t){var n=nAr(t);if(RV[n])return RV[n];var w=n.split(' ');for(var i=0;i<w.length;i++)if(RV[w[i]])return RV[w[i]];return null}
+
+/* ---------- dates ---------- */
+var MON={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+function dmy(d,m,y){d=+d;m=+m;y=+y;if(!(m>=1&&m<=12&&d>=1&&d<=31&&y>=1900&&y<=2100))return null;return p2(d)+'-'+p2(m)+'-'+y}
+function allDates(s){
+  s=west(s);var out=[],m,re,v;
+  function add(x){if(x&&out.indexOf(x)<0)out.push(x)}
+  re=/(\d{4})\s*[\/\-.]\s*(\d{1,2})\s*[\/\-.]\s*(\d{1,2})(?!\d)/g;while((m=re.exec(s)))add(dmy(m[3],m[2],m[1]));
+  re=/(\d{1,2})\s*[\/\-.]\s*(\d{1,2})\s*[\/\-.]\s*(\d{4})/g;while((m=re.exec(s)))add(dmy(m[1],m[2],m[3]));
+  re=/(\d{1,2})\s*[-\/ ]\s*([A-Za-z]{3,9})\s*[-\/ ,]*\s*(\d{4})/g;while((m=re.exec(s))){v=MON[m[2].slice(0,3).toLowerCase()];if(v)add(dmy(m[1],v,m[3]))}
+  return out;
+}
+function fmtDate(v){var a=allDates(String(v));return a.length===1&&String(v).trim().length<=12?a[0]:null}
+
+/* ---------- MRZ ---------- */
+var TD={O:'0',Q:'0',D:'0',I:'1',L:'1',Z:'2',S:'5',B:'8',G:'6'};
+var TA={'0':'O','1':'I','2':'Z','5':'S','8':'B','6':'G'};
+var ALT={O:'0','0':'O',Q:'0',I:'1','1':'I',L:'1',B:'8','8':'B',S:'5','5':'S',Z:'2','2':'Z',G:'6','6':'G',D:'0'};
+var SXM={M:'M',F:'F','<':'<',N:'M',H:'M',P:'F',E:'F',T:'F'};
+function toDigits(s){return String(s).split('').map(function(c){return /[0-9]/.test(c)?c:(TD[c]!==undefined?TD[c]:c)}).join('')}
+function toAlpha(s){return String(s).split('').map(function(c){return TA[c]!==undefined?TA[c]:c}).join('')}
+function cv(c){if(c==='<')return 0;var n=c.charCodeAt(0);if(n>=48&&n<=57)return n-48;if(n>=65&&n<=90)return n-55;return 0}
+function chk(s){var t=0,W=[7,3,1];for(var i=0;i<s.length;i++)t+=cv(s.charAt(i))*W[i%3];return t%10}
+function isChk(s,d){return /^\d$/.test(d)&&chk(s)===+d}
+function optOk(opt,c){if(c===null||c===undefined)return null;if(/^<*$/.test(opt))return c==='<'||c==='0';return isChk(opt,c)}
+function fitLen(l,n){
+  var guard=0;
+  while(l.length!==n&&guard++<14){
+    var best=-1,bl=0,m,re=/<+/g;
+    while((m=re.exec(l))){if(m[0].length>bl){bl=m[0].length;best=m.index}}
+    if(l.length>n){if(bl>=2)l=l.slice(0,best)+l.slice(best+1);else l=l.slice(0,n)}
+    else{if(best>=0)l=l.slice(0,best)+'<'+l.slice(best);else l=l+'<'}
+  }
+  return l;
+}
+function fixDoc(raw,d){
+  raw=raw.replace(/[^A-Z0-9<]/g,'<');
+  if(isChk(raw,d))return{v:raw,ok:true};
+  for(var i=0;i<raw.length;i++){
+    var a=ALT[raw.charAt(i)];
+    if(a!==undefined){var s=raw.slice(0,i)+a+raw.slice(i+1);if(isChk(s,d))return{v:s,ok:true,fixed:true}}
+  }
+  return{v:raw,ok:false};
+}
+function mdate(s,isExp){
+  s=toDigits(s);if(!/^\d{6}$/.test(s))return '';
+  var yy=+s.slice(0,2),mm=+s.slice(2,4),dd=+s.slice(4,6),cy=new Date().getFullYear()%100;
+  if(mm<1||mm>12||dd<1||dd>31)return '';
+  var y=isExp?2000+yy:(yy>cy?1900+yy:2000+yy);
+  return p2(dd)+'-'+p2(mm)+'-'+y;
+}
+function tidy(s){return s.replace(/<+$/,'').replace(/</g,' ').replace(/\s+/g,' ').trim()}
+function parseNames(s){
+  s=toAlpha(s);var i=s.indexOf('<<'),sur,giv;
+  if(i<0){sur=s;giv=''}else{sur=s.slice(0,i);giv=s.slice(i+2)}
+  giv=giv.replace(/<{2,}.*$/,'');
+  var gt=tidy(giv).split(' ').filter(Boolean);
+  while(gt.length>1&&gt[gt.length-1].length===1&&'KCLEXS'.indexOf(gt[gt.length-1])>=0)gt.pop();
+  return{sur:tidy(sur),giv:gt.join(' ')};
+}
+function finish(r,flags){
+  r.compOk=flags.comp;
+  r.allOk=!!(r.docOk&&r.dobOk&&r.expOk&&r.compOk&&r.perOk!==false);
+  var s=0;
+  if(r.docOk)s+=3;if(r.dobOk)s+=3;if(r.expOk)s+=3;if(r.compOk)s+=3;if(r.perOk===true)s+=2;
+  if(r.dob)s++;if(r.exp)s++;if(/^[A-Z]{3}$/.test(r.natCode))s++;if(r.sex==='M'||r.sex==='F')s++;
+  r.score=s;return r;
+}
+function parse2(a,b,n){
+  a=fitLen(a,n);b=fitLen(b,n);
+  var td3=n===44;
+  var dc=toDigits(b.charAt(9)),dobc=toDigits(b.charAt(19)),expc=toDigits(b.charAt(27));
+  var doc=fixDoc(b.slice(0,9),dc);
+  var dob=toDigits(b.slice(13,19)),exp=toDigits(b.slice(21,27));
+  var opt=td3?b.slice(28,42):b.slice(28,35),optc=td3?toDigits(b.charAt(42)):null,comp=toDigits(b.charAt(n-1));
+  var nm=parseNames(a.slice(5));
+  var r={t:td3?'TD3':'TD2',lines:[a,b],docType:a.slice(0,2),issuer:toAlpha(a.slice(2,5)),sur:nm.sur,giv:nm.giv,
+    doc:tidy(doc.v).replace(/\s/g,''),docOk:doc.ok,docFixed:!!doc.fixed,natCode:toAlpha(b.slice(10,13)),sex:SXM[b.charAt(20)]||'<',
+    dob:mdate(dob,false),dobOk:isChk(dob,dobc),exp:mdate(exp,true),expOk:isChk(exp,expc),opt:tidy(opt),perOk:optOk(opt,optc)};
+  return finish(r,{comp:isChk(doc.v+dc+dob+dobc+exp+expc+opt+(td3?optc:''),comp)});
+}
+function parseTD1(a,b,c){
+  a=fitLen(a,30);b=fitLen(b,30);c=fitLen(c,30);
+  var dc=toDigits(a.charAt(14)),doc=fixDoc(a.slice(5,14),dc),opt1=a.slice(15,30);
+  var dob=toDigits(b.slice(0,6)),dobc=toDigits(b.charAt(6)),exp=toDigits(b.slice(8,14)),expc=toDigits(b.charAt(14)),opt2=b.slice(18,29),comp=toDigits(b.charAt(29));
+  var nm=parseNames(c);
+  var r={t:'TD1',lines:[a,b,c],docType:a.slice(0,2),issuer:toAlpha(a.slice(2,5)),sur:nm.sur,giv:nm.giv,
+    doc:tidy(doc.v).replace(/\s/g,''),docOk:doc.ok,docFixed:!!doc.fixed,natCode:toAlpha(b.slice(15,18)),sex:SXM[b.charAt(7)]||'<',
+    dob:mdate(dob,false),dobOk:isChk(dob,dobc),exp:mdate(exp,true),expOk:isChk(exp,expc),opt:tidy(opt1+' '+opt2),perOk:null};
+  return finish(r,{comp:isChk(doc.v+dc+opt1+dob+dobc+exp+expc+opt2,comp)});
+}
+function mrzLines(t){
+  return String(t||'').toUpperCase().replace(/[«‹〈＜≪]/g,'<').split(/\r?\n/).map(function(x){return x.replace(/\s+/g,'').replace(/[^A-Z0-9<]/g,'')}).filter(function(x){return x.length>=24});
+}
+function findMrz(text){
+  var ls=mrzLines(text),best=null;
+  function cand(r){if(r&&(!best||r.score>best.score))best=r}
+  function within(x,a,b){return x.length>=a&&x.length<=b}
+  for(var i=0;i<ls.length;i++){
+    if(i+1<ls.length){
+      if(within(ls[i],40,48)&&within(ls[i+1],40,48))cand(parse2(ls[i],ls[i+1],44));
+      else if(within(ls[i],33,39)&&within(ls[i+1],33,39))cand(parse2(ls[i],ls[i+1],36));
+    }
+    if(i+2<ls.length&&within(ls[i],26,33)&&within(ls[i+1],26,33)&&within(ls[i+2],26,33))cand(parseTD1(ls[i],ls[i+1],ls[i+2]));
+  }
+  return best&&best.score>=3?best:null;
+}
+function sexObj(c){return c==='M'?{en:'Male',ar:'ذكر'}:c==='F'?{en:'Female',ar:'أنثى'}:null}
+function mrzFields(m){
+  var f=[];
+  function add(key,v,ok){if(v&&(typeof v!=='object'||v.en))f.push({key:key,v:v,ok:ok,src:'mrz'})}
+  add('surname',m.sur,null);add('given',m.giv,null);
+  add(/^P/.test(m.docType)?'passportNo':'docNo',m.doc,m.docOk?(m.docFixed?'fix':true):false);
+  add('nat',country(m.natCode),null);
+  add('dob',m.dob,m.dobOk);add('sex',sexObj(m.sex),null);add('exp',m.exp,m.expOk);
+  add('issuer',country(m.issuer),null);
+  add('personal',m.opt,m.perOk===null?null:m.perOk);
+  return f;
+}
+
+/* ---------- rows from OCR words ---------- */
+function clean(s){return String(s).replace(/[^\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFFA-Za-z0-9\s<>\/\\\-.,:;()\[\]'"+&@#%*_|]/g,' ')}
+function mkRow(tokens){
+  tokens=tokens.filter(function(t){return /[A-Za-z0-9\u0600-\u06FF]/.test(t)});
+  return{tokens:tokens,norm:tokens.map(nAr),text:tokens.join(' ')};
+}
+function rowsFromText(t){return String(t||'').split(/\r?\n/).map(function(l){return mkRow(clean(l).split(/\s+/))}).filter(function(r){return r.tokens.length})}
+function buildRows(words){
+  var ws=(words||[]).filter(function(w){return w&&typeof w.text==='string'&&w.bbox&&/[A-Za-z0-9\u0600-\u06FF]/.test(w.text)&&(w.confidence===undefined||w.confidence>=25)});
+  if(ws.length<3)return [];
+  var hs=ws.map(function(w){return w.bbox.y1-w.bbox.y0}).sort(function(a,b){return a-b});
+  var mh=hs[hs.length>>1]||20;
+  ws.sort(function(a,b){return a.bbox.y0+a.bbox.y1-b.bbox.y0-b.bbox.y1});
+  var groups=[],cur=null;
+  ws.forEach(function(w){
+    var cy=(w.bbox.y0+w.bbox.y1)/2;
+    if(cur&&Math.abs(cy-cur.cy)<=Math.max(6,mh*0.55)){cur.w.push(w);cur.sum+=cy;cur.n++;cur.cy=cur.sum/cur.n}
+    else{cur={cy:cy,sum:cy,n:1,w:[w]};groups.push(cur)}
+  });
+  return groups.map(function(g){
+    var s=g.w.sort(function(a,b){return a.bbox.x0-b.bbox.x0}),runs=[],c=null,toks=[];
+    s.forEach(function(w){var ar=/[\u0600-\u06FF]/.test(w.text);if(c&&c.ar===ar)c.t.push(w.text);else{c={ar:ar,t:[w.text]};runs.push(c)}});
+    runs.forEach(function(r){(r.ar?r.t.slice().reverse():r.t).forEach(function(x){toks.push(x)})});
+    return mkRow(toks);
+  }).filter(function(r){return r.tokens.length});
+}
+
+/* ---------- label based extraction ---------- */
+var LD=[
+['dob',['date of birth','birth date','dob','born','تاريخ الميلاد','تاريخ الولادة','الميلاد']],
+['exp',['date of expiry','expiry date','expiry','expires','expiration date','valid until','valid to','تاريخ الانتهاء','تاريخ انتهاء الصلاحية','تاريخ انتهاء','انتهاء الصلاحية','تنتهي في','ينتهي في','الانتهاء']],
+['issue',['date of issue','issue date','issued on','تاريخ الإصدار','تاريخ الاصدار','الإصدار']],
+['nat',['nationality','الجنسية']],
+['sex',['sex','gender','الجنس','النوع']],
+['pob',['place of birth','مكان الميلاد','محل الميلاد']],
+['passportNo',['passport no','passport number','رقم الجواز','رقم جواز السفر']],
+['idNo',['id number','id no','identity number','identity no','card number','card no','residence permit no','resident id','national id','الرقم القومي','رقم الهوية','رقم البطاقة','رقم الإقامة','الرقم الشخصي','personal no','civil no','الرقم المدني']],
+['employer',['employer','sponsor','company','جهة العمل','صاحب العمل','الكفيل','اسم الكفيل','الشركة']],
+['occupation',['occupation','profession','job title','المهنة','الوظيفة']],
+['name',['full name','name','الاسم الكامل','الاسم','اسم']]
+];
+var PH=[];
+LD.forEach(function(e){e[1].forEach(function(p){var s=nAr(p);PH.push({k:e[0],s:s,w:s.split(' ')})})});
+PH.sort(function(a,b){return b.w.length-a.w.length||b.s.length-a.s.length});
+var DATEK={dob:1,exp:1,issue:1};
+function scanRow(row){
+  var n=row.tokens.length,used=[],hits=[];
+  PH.forEach(function(p){
+    var L=p.w.length;
+    for(var i=0;i+L<=n;i++){
+      var free=true,j;for(j=0;j<L;j++)if(used[i+j]){free=false;break}
+      if(!free)continue;
+      if(near(row.norm.slice(i,i+L).join(' '),p.s)){for(j=0;j<L;j++)used[i+j]=1;hits.push({k:p.k,i:i});i+=L-1}
+    }
+  });
+  hits.sort(function(a,b){return a.i-b.i});
+  var rest=[];row.tokens.forEach(function(t,i){if(!used[i])rest.push(t)});
+  return{hits:hits,rest:rest};
+}
+function extract(k,s){
+  s=String(s||'');
+  if(DATEK[k])return allDates(s)[0]||null;
+  if(k==='idNo'){var m=west(s).match(/\d[\d\s\-]{4,}\d/);if(!m)return null;var d=m[0].replace(/\D/g,'');return d.length>=6&&d.length<=20?d:null}
+  if(k==='passportNo'){var u=west(s).toUpperCase().replace(/[^A-Z0-9 ]/g,' ').split(/\s+/).filter(function(x){return /^[A-Z0-9]{6,9}$/.test(x)&&/\d/.test(x)});return u[0]||null}
+  if(k==='sex'){var t=nAr(s);if(/(^| )(female|f)( |$)|انثي/.test(t))return sexObj('F');if(/(^| )(male|m)( |$)|ذكر/.test(t))return sexObj('M');return null}
+  var tx=s.replace(/[:：|_]+/g,' ').replace(/\s+/g,' ').trim();
+  var letters=(tx.match(/[A-Za-z\u0600-\u06FF]/g)||[]).length;
+  if(letters<2||letters<tx.replace(/\s/g,'').length*0.6||tx.length>70)return null;
+  if(k==='nat')return natLookup(tx)||tx;
+  if(k==='name'){
+    var ar=[],en=[];tx.split(' ').forEach(function(w){if(/[\u0600-\u06FF]/.test(w))ar.push(w);else if(/^[A-Za-z'.\-]{2,}$/.test(w))en.push(w)});
+    if(!ar.length&&!en.length)return null;
+    return{ar:ar.join(' '),en:en.join(' ')};
+  }
+  return tx;
+}
+function labelFields(rows){
+  var sc=rows.map(scanRow),out={};
+  function put(k,v){if(v!==null&&v!==undefined&&v!==''&&!out[k])out[k]=v}
+  function store(k,v){
+    if(k==='name'){if(v.ar&&v.ar.length>2)put('name_ar',v.ar);if(v.en&&v.en.length>2)put('name_en',v.en)}
+    else put(k,v);
+  }
+  rows.forEach(function(row,i){
+    var s=sc[i];if(!s.hits.length)return;
+    var keys=[];s.hits.forEach(function(h){if(keys.indexOf(h.k)<0)keys.push(h.k)});
+    var multi=keys.length>1,nxt=rows[i+1],ns=sc[i+1];
+    var dk=keys.filter(function(k){return DATEK[k]}),dates=multi?allDates(s.rest.join(' ')):[];
+    keys.forEach(function(k){
+      var v=null;
+      if(!multi)v=extract(k,s.rest.join(' '));
+      else if(DATEK[k])v=dates[dk.indexOf(k)]||null;
+      if(!v&&nxt&&ns.hits.length===0)v=extract(k,nxt.tokens.join(' '));
+      if(v)store(k,v);
+    });
+  });
+  return out;
+}
+
+/* ---------- Egyptian national ID ---------- */
+var GOV={'01':'Cairo|القاهرة','02':'Alexandria|الإسكندرية','03':'Port Said|بورسعيد','04':'Suez|السويس','11':'Damietta|دمياط','12':'Dakahlia|الدقهلية','13':'Sharqia|الشرقية','14':'Qalyubia|القليوبية','15':'Kafr El Sheikh|كفر الشيخ','16':'Gharbia|الغربية','17':'Monufia|المنوفية','18':'Beheira|البحيرة','19':'Ismailia|الإسماعيلية','21':'Giza|الجيزة','22':'Beni Suef|بني سويف','23':'Fayoum|الفيوم','24':'Minya|المنيا','25':'Assiut|أسيوط','26':'Sohag|سوهاج','27':'Qena|قنا','28':'Aswan|أسوان','29':'Luxor|الأقصر','31':'Red Sea|البحر الأحمر','32':'New Valley|الوادي الجديد','33':'Matrouh|مطروح','34':'North Sinai|شمال سيناء','35':'South Sinai|جنوب سيناء','88':'Born abroad|مولود بالخارج'};
+function egyId(n){
+  if(!/^[23]\d{13}$/.test(n))return null;
+  var d=dmy(n.slice(5,7),n.slice(3,5),(n.charAt(0)==='2'?1900:2000)+(+n.slice(1,3)));
+  if(!d)return null;
+  var g=GOV[n.slice(7,9)],gp=g?g.split('|'):null;
+  return{dob:d,gov:gp?{en:gp[0],ar:gp[1]}:null,sex:sexObj(+n.charAt(12)%2?'M':'F')};
+}
+
+/* ---------- assemble ---------- */
+var ORDER=['surname','given','name_ar','name_en','passportNo','docNo','idNo','personal','nat','dob','sex','pob','gov','issue','exp','issuer','employer','occupation'];
+function pickEn(v){return v&&typeof v==='object'?(v.en||''):String(v||'')}
+function typeOf(mrz,text){
+  if(mrz){var c=mrz.docType.charAt(0);if(c==='P')return{en:'Passport',ar:'جواز سفر'};if(c==='V')return{en:'Visa',ar:'تأشيرة'};return{en:'ID Card / Residence',ar:'بطاقة هوية / إقامة'}}
+  var t=nAr(text);
+  if(/passport|جواز/.test(t))return{en:'Passport',ar:'جواز سفر'};
+  if(/residen|اقامه/.test(t))return{en:'Residence Permit',ar:'بطاقة إقامة'};
+  if(/identity|national|هويه|بطاقه|قومي/.test(t))return{en:'ID Card',ar:'بطاقة هوية'};
+  return{en:'Document',ar:'وثيقة'};
+}
+function assemble(text,words,mrz,conf){
+  var rows=buildRows(words);if(!rows.length)rows=rowsFromText(text);
+  var tx=labelFields(rows),F={};
+  if(mrz)mrzFields(mrz).forEach(function(f){F[f.key]=f});
+  Object.keys(tx).forEach(function(k){
+    if(k==='name_en'&&F.surname)return;
+    var cur=F[k];
+    if(!cur||cur.ok===false)F[k]={key:k,v:tx[k],ok:null,src:'text'};
+  });
+  /* de-duplicate identical numbers across id keys */
+  var seen={};
+  ['passportNo','docNo','idNo','personal'].forEach(function(k){
+    if(!F[k])return;var s=pickEn(F[k].v).replace(/\W/g,'').toUpperCase();
+    if(s&&seen[s])delete F[k];else if(s)seen[s]=1;
+  });
+  /* raw rows for display */
+  var raw=rows.map(function(r){return r.text}).filter(function(l){
+    if((l.match(/</g)||[]).length>=2)return false;
+    return (l.match(/[A-Za-z0-9\u0600-\u06FF]/g)||[]).length>=2;
+  });
+  var all=west(raw.join('\n')),extra=[];
+  /* unclassified numbers / dates */
+  var have={};Object.keys(F).forEach(function(k){have[pickEn(F[k].v).replace(/\W/g,'').toUpperCase()]=1;});
+  var nums=[];(all.match(/\b\d{9,15}\b/g)||[]).forEach(function(x){if(!have[x]&&nums.indexOf(x)<0)nums.push(x)});
+  var dts=allDates(all).filter(function(d){return !have[d.replace(/\W/g,'')]});
+  var fv={};Object.keys(F).forEach(function(k){if(DATEK[k])fv[F[k].v]=1});
+  dts=dts.filter(function(d){return !fv[d]});
+  /* Egyptian national ID */
+  var eg=null;
+  Object.keys(F).concat([]).forEach(function(k){if(!eg&&typeof F[k].v==='string')eg=egyId(F[k].v)});
+  if(!eg)nums.forEach(function(n){if(!eg){var e=egyId(n);if(e){eg=e;if(!F.idNo){F.idNo={key:'idNo',v:n,ok:null,src:'auto'};nums=nums.filter(function(x){return x!==n})}}}});
+  if(eg){
+    if(!F.dob)F.dob={key:'dob',v:eg.dob,ok:null,src:'derived'};
+    if(!F.sex&&eg.sex)F.sex={key:'sex',v:eg.sex,ok:null,src:'derived'};
+    if(eg.gov)F.gov={key:'gov',v:eg.gov,ok:null,src:'derived'};
+    dts=dts.filter(function(d){return !(F.dob&&F.dob.v===d&&F.dob.src==='derived')});
+  }
+  nums.slice(0,2).forEach(function(n){extra.push({key:'x_id',v:n,ok:null,src:'auto'})});
+  dts.slice(0,4).forEach(function(d){extra.push({key:'x_date',v:d,ok:null,src:'auto'})});
+  var list=[];
+  ORDER.forEach(function(k){if(F[k])list.push(F[k])});
+  extra.forEach(function(e){list.push(e)});
+  return{type:typeOf(mrz,text),fields:list,mrz:mrz?{t:mrz.t,lines:mrz.lines,allOk:mrz.allOk,score:mrz.score}:null,rows:raw,conf:Math.max(0,Math.min(100,conf||0))};
+}
+g.DX={findMrz:findMrz,assemble:assemble,buildRows:buildRows,labelFields:labelFields,allDates:allDates,egyId:egyId,fmtDate:fmtDate};
+})(typeof window!=='undefined'?window:this);
+</script>
+
+<script>
+(function(){
+var DX=window.DX,curFile=null,L='ar',img=null,rot=0,res=null,busy=false,workers={},onProg=null,objUrl=null;
+function $(i){return document.getElementById(i)}
+var D={
+ar:{title:"مستخرج بيانات الوثائق",sub:"ارفع صورة جواز سفر أو بطاقة هوية أو إقامة، وهتطلع كل البيانات منظمة وجاهزة للنسخ.",c1:"جواز سفر",c2:"بطاقة هوية",c3:"إقامة",c4:"عربي + English",
+drop:"اضغط لاختيار صورة أو اسحبها هنا",dropn:"JPG / PNG / WEBP — أو الصق الصورة بـ Ctrl+V",go:"استخراج البيانات",cam:"تصوير بالكاميرا",clr:"مسح",
+tipsT:"نصائح لنتيجة أدق",tips:["صوّر الوثيقة في إضاءة كويسة وبدون انعكاس أو ظل.","خلّي الوثيقة مسطّحة وتملا معظم الصورة.","لو الصورة جاية مقلوبة أو على جنب، استخدم زرار التدوير قبل الاستخراج.","في البطاقات اللي ليها ظهر فيه سطور MRZ (السطور اللي فيها علامات <)، صوّر الوش والظهر كل واحد لوحده."],
+all:"كل الحقول",editn:"تقدر تعدّل أي قيمة بإيدك قبل النسخ أو التحميل.",full:"النص الكامل (مرتّب بالصفوف)",cpAll:"نسخ كل البيانات",dlJ:"تحميل JSON",dlC:"تحميل CSV (Excel)",
+priv:"القراءة بتتم بالكامل جوه متصفحك والصورة مبتتبعتش لأي سيرفر. أول تشغيل بيحمّل ملفات اللغة (حوالي 15 ميجا) فيحتاج إنترنت. راجع النتيجة دايمًا، خصوصًا الأرقام والتواريخ.",rights:"جميع الحقوق محفوظة",
+copy:"نسخ",copied:"تم ✓",pick:"اختار ملف صورة.",lib:"مكتبة القراءة لم تُحمّل، تأكد من الاتصال بالإنترنت.",fail:"حصل خطأ أثناء القراءة، جرّب صورة أوضح.",none:"مفيش بيانات منظمة اتعرفت عليها، شوف النص الكامل تحت وجرّب صورة أوضح.",
+imgerr:"تعذر قراءة الصورة",sPrep:"تجهيز الصورة...",sText:"قراءة النص العربي والإنجليزي...",sMrz:"قراءة سطور MRZ...",sMrz2:"إعادة قراءة MRZ بدقة أعلى...",sParse:"تحليل البيانات...",sLang:"تحميل ملفات اللغة (أول مرة بس)...",
+hintRot:"القراءة ضعيفة. لو الصورة مايلة أو مقلوبة، لفّها بزرار التدوير وجرّب تاني.",
+conf:"دقة القراءة",mrzOk:"MRZ مطابق ✓",mrzBad:"MRZ فيه أرقام تحقق غير مطابقة",mrzNone:"بدون MRZ",
+mrzNoteOk:"كل أرقام التحقق (رقم الوثيقة، الميلاد، الانتهاء، والإجمالي) مطابقة، فالبيانات دي موثوقة جدًا.",mrzNoteBad:"بعض أرقام التحقق مش مطابقة، يعني فيه حرف أو رقم اتقرأ غلط. راجع الحقول اللي عليها علامة ✕ أو ⚠ وصحّحها.",
+bOk:"✓ تحقق",bFix:"⚠ اتصحح",bBad:"✕ راجع",sMrzS:"MRZ",sTxt:"نص",sDer:"مستنتج",sAuto:"تلقائي",
+age:"العمر",yrs:"سنة",exp:"منتهية من",left:"باقي",uD:"يوم",uM:"شهر",uY:"سنة",valid:"سارية",expired:"منتهية",
+fn:"الاسم",fid:"رقم الوثيقة",fdob:"تاريخ الميلاد",fexp:"تاريخ الانتهاء",fnat:"الجنسية"},
+en:{title:"Document Data Extractor",sub:"Upload a passport, ID card or residence permit and get the data organized and ready to copy.",c1:"Passport",c2:"ID Card",c3:"Residence Permit",c4:"Arabic + English",
+drop:"Click to choose an image or drag it here",dropn:"JPG / PNG / WEBP — or paste with Ctrl+V",go:"Extract Data",cam:"Take Photo",clr:"Clear",
+tipsT:"Tips for better accuracy",tips:["Shoot in good light, without glare or shadows.","Keep the document flat and filling most of the frame.","If the photo is sideways or upside down, rotate it before extracting.","For cards with MRZ lines (lines containing < symbols) on the back, scan front and back separately."],
+all:"All Fields",editn:"You can edit any value before copying or downloading.",full:"Full Text (grouped by rows)",cpAll:"Copy All Data",dlJ:"Download JSON",dlC:"Download CSV (Excel)",
+priv:"Reading happens entirely in your browser and the image is never sent to any server. The first run downloads language files (about 15 MB), so it needs internet. Always double-check the result, especially numbers and dates.",rights:"All rights reserved",
+copy:"Copy",copied:"Done ✓",pick:"Please choose an image file.",lib:"The reading library did not load, check your internet connection.",fail:"An error occurred while reading, try a clearer image.",none:"No structured data was recognized. See the full text below and try a clearer image.",
+imgerr:"Could not read the image",sPrep:"Preparing image...",sText:"Reading Arabic and English text...",sMrz:"Reading MRZ lines...",sMrz2:"Re-reading MRZ at higher precision...",sParse:"Analyzing data...",sLang:"Downloading language files (first run only)...",
+hintRot:"Reading quality is low. If the photo is tilted or upside down, rotate it and try again.",
+conf:"Read confidence",mrzOk:"MRZ verified ✓",mrzBad:"MRZ has failing check digits",mrzNone:"No MRZ",
+mrzNoteOk:"All check digits (document number, birth, expiry, composite) match, so this data is highly reliable.",mrzNoteBad:"Some check digits do not match, meaning a character was misread. Review fields marked ✕ or ⚠ and correct them.",
+bOk:"✓ Verified",bFix:"⚠ Auto-fixed",bBad:"✕ Review",sMrzS:"MRZ",sTxt:"Text",sDer:"Derived",sAuto:"Auto",
+age:"Age",yrs:"yrs",exp:"Expired",left:"Left",uD:"days",uM:"months",uY:"years",valid:"Valid",expired:"Expired",
+fn:"Name",fid:"Document No.",fdob:"Date of Birth",fexp:"Expiry Date",fnat:"Nationality"}
+};
+var LBL={surname:['Surname','اللقب'],given:['Given Names','الاسم الأول'],name_ar:['Name (Arabic)','الاسم (عربي)'],name_en:['Name (Latin)','الاسم (إنجليزي)'],
+passportNo:['Passport No.','رقم جواز السفر'],docNo:['Document No.','رقم الوثيقة'],idNo:['ID Number','رقم الهوية'],personal:['Personal / Optional No.','الرقم الشخصي / اختياري'],
+nat:['Nationality','الجنسية'],dob:['Date of Birth','تاريخ الميلاد'],sex:['Sex','الجنس'],pob:['Place of Birth','مكان الميلاد'],gov:['Governorate (from ID)','المحافظة (من الرقم القومي)'],
+issue:['Issue Date','تاريخ الإصدار'],exp:['Expiry Date','تاريخ الانتهاء'],issuer:['Issuing Country','بلد الإصدار'],employer:['Employer / Sponsor','جهة العمل / الكفيل'],
+occupation:['Occupation','المهنة'],x_id:['Other Number','رقم آخر'],x_date:['Other Date','تاريخ آخر']};
+var NUMK={passportNo:1,docNo:1,idNo:1,personal:1,dob:1,exp:1,issue:1,x_id:1,x_date:1};
+function T(k){return D[L][k]}
+function pick(v){return v&&typeof v==='object'?(v[L]!==undefined&&v[L]!==''?v[L]:v.en):v}
+function lbl(k){return LBL[k][L==='ar'?1:0]}
+function say(t,e){$('msg').textContent=t||'';$('msg').className=e?'err':''}
+function setBar(p,t){$('bar').style.display='block';$('bar').firstChild.style.width=Math.round(p*100)+'%';if(t)say(t)}
+
+function applyLang(l){
+  L=l;document.documentElement.lang=l;document.documentElement.dir=l==='ar'?'rtl':'ltr';document.title=T('title');
+  [].forEach.call(document.querySelectorAll('[data-t]'),function(e){e.textContent=T(e.getAttribute('data-t'))});
+  [].forEach.call(document.querySelectorAll('.lang button'),function(b){b.classList.toggle('on',b.getAttribute('data-l')===l)});
+  $('tips').innerHTML='';T('tips').forEach(function(x){var li=document.createElement('li');li.textContent=x;$('tips').appendChild(li)});
+  say('');if(res)render();
+}
+
+/* ---------- image input ---------- */
+$('drop').onclick=function(){$('file').click()};
+$('drop').onkeydown=function(e){if(e.key==='Enter')$('file').click()};
+$('camb').onclick=function(){$('cam').click()};
+$('file').onchange=function(e){setFile(e.target.files[0])};
+$('cam').onchange=function(e){setFile(e.target.files[0])};
+['dragover','dragenter'].forEach(function(n){$('drop').addEventListener(n,function(e){e.preventDefault();$('drop').classList.add('over')})});
+['dragleave','drop'].forEach(function(n){$('drop').addEventListener(n,function(e){e.preventDefault();$('drop').classList.remove('over')})});
+$('drop').addEventListener('drop',function(e){setFile(e.dataTransfer.files[0])});
+document.addEventListener('paste',function(e){var it=e.clipboardData&&e.clipboardData.files;if(it&&it.length)setFile(it[0])});
+function setFile(f){
+  if(!f||!/^image\//.test(f.type)){say(T('pick'),true);return}
+  curFile=f;
+  if(objUrl)URL.revokeObjectURL(objUrl);objUrl=URL.createObjectURL(f);
+  var i=new Image();
+  i.onload=function(){img=i;rot=0;res=null;$('out').hidden=true;$('pv').hidden=false;$('go').disabled=false;$('clr').disabled=false;say('');drawPreview()};
+  i.onerror=function(){say(T('imgerr'),true)};
+  i.src=objUrl;
+}
+function drawPreview(){
+  var c=$('preview'),w=img.naturalWidth,h=img.naturalHeight,s=rot%180!==0,iw=s?h:w,ih=s?w:h,r=Math.min(1,900/iw,420/ih*1.4);
+  c.width=Math.round(iw*r);c.height=Math.round(ih*r);var x=c.getContext('2d');
+  x.save();x.translate(c.width/2,c.height/2);x.rotate(rot*Math.PI/180);x.drawImage(img,-w*r/2,-h*r/2,w*r,h*r);x.restore();
+}
+$('rl').onclick=function(){if(img){rot=(rot+270)%360;drawPreview()}};
+$('rr').onclick=function(){if(img){rot=(rot+90)%360;drawPreview()}};
+$('clr').onclick=function(){curFile=null;img=null;res=null;rot=0;$('pv').hidden=true;$('go').disabled=true;$('clr').disabled=true;$('out').hidden=true;$('file').value='';$('cam').value='';say('');$('bar').style.display='none'};
+
+/* ---------- local engine (Python server) ---------- */
+D.ar.priv="القراءة بتتم على جهازك بالكامل بواسطة البرنامج، والصورة مبتتبعتش لأي إنترنت أو سيرفر خارجي. أول تشغيل بيحمّل نماذج القراءة (حوالي 100 ميجا) وبعدها بيشتغل بدون نت. راجع النتيجة دايمًا، خصوصًا الأرقام والتواريخ.";
+D.en.priv="Reading happens entirely on your computer inside this program; the image is never sent to the internet or any external server. The first run downloads the reading models (about 100 MB), then it works offline. Always double-check the result, especially numbers and dates.";
+D.ar.sEngine="محرك القراءة بيتجهّز... (أول مرة بيحمّل النماذج وممكن ياخد كام دقيقة)";
+D.en.sEngine="The reading engine is starting... (first run downloads models and can take a few minutes)";
+D.ar.sRead="جاري القراءة... ممكن ياخد من 10 لـ 40 ثانية";
+D.en.sRead="Reading... this can take 10 to 40 seconds";
+D.ar.engErr="تعذر تشغيل محرك القراءة: ";D.en.engErr="Could not start the reading engine: ";
+D.ar.srvErr="خطأ من البرنامج: ";D.en.srvErr="Program error: ";
+D.ar.noSrv="افتح الأداة من خلال البرنامج (DocExtractor.exe) مش من الملف مباشرة.";
+D.en.noSrv="Open the tool through the program (DocExtractor.exe), not directly from the file.";
+var engine={ready:false,error:null};
+function pollStatus(){
+  if(location.protocol==='file:'){say(T('noSrv'),true);return}
+  fetch('/api/status').then(function(r){return r.json()}).then(function(s){
+    engine=s;
+    if(s.ready){if(!busy)say('')}
+    else if(s.error)say(T('engErr')+s.error,true);
+    else{if(!busy)say(T('sEngine'));setTimeout(pollStatus,2000)}
+  }).catch(function(){setTimeout(pollStatus,3000)});
+}
+function better(a,b){if(!a)return b;if(!b)return a;return b.score>a.score?b:a}
+async function run(){
+  if(!img||!curFile||busy)return;
+  if(!engine.ready){say(engine.error?T('engErr')+engine.error:T('sEngine'),!!engine.error);return}
+  busy=true;$('go').disabled=true;res=null;$('out').hidden=true;
+  var p=0.04,tm=setInterval(function(){p+=(0.93-p)*0.035;setBar(p)},500);
+  try{
+    setBar(p,T('sRead'));
+    var r=await fetch('/api/ocr?rot='+rot,{method:'POST',body:curFile});
+    var d=await r.json();
+    if(!r.ok)throw new Error(d.error||r.status);
+    var best=DX.findMrz(d.text||'');
+    (d.mrz||[]).forEach(function(t){best=better(best,DX.findMrz(t))});
+    res=DX.assemble(d.text||'',d.words,best,d.confidence);
+    setBar(1);
+    say(!res.fields.length?T('none'):(res.conf<45?T('hintRot'):''),!res.fields.length);
+    render();
+    setTimeout(function(){$('bar').style.display='none'},700);
+  }catch(e){console.error(e);say(T('srvErr')+(e.message||e),true);$('bar').style.display='none'}
+  clearInterval(tm);busy=false;$('go').disabled=false;
+}
+$('go').onclick=run;
+
+/* ---------- render ---------- */
+function dayDiff(s){var m=/^(\d{2})-(\d{2})-(\d{4})$/.exec(s||'');if(!m)return null;var n=new Date();return Math.round((Date.UTC(+m[3],+m[2]-1,+m[1])-Date.UTC(n.getFullYear(),n.getMonth(),n.getDate()))/864e5)}
+function span(d){d=Math.abs(d);if(d<=45)return d+' '+T('uD');if(d<730)return Math.round(d/30)+' '+T('uM');return (d/365).toFixed(1)+' '+T('uY')}
+function ageOf(s){var m=/^(\d{2})-(\d{2})-(\d{4})$/.exec(s||'');if(!m)return null;var n=new Date(),a=n.getFullYear()-m[3];if(n.getMonth()+1<+m[2]||(n.getMonth()+1===+m[2]&&n.getDate()<+m[1]))a--;return a>=0&&a<130?a:null}
+function fieldVal(k){for(var i=0;i<res.fields.length;i++)if(res.fields[i].key===k)return pick(res.fields[i].v);return ''}
+function pill(cls,t){var s=document.createElement('span');s.className='pill '+cls;s.textContent=t;return s}
+function fact(label,val,extra){
+  var d=document.createElement('div');d.className='fact';var s=document.createElement('small');s.textContent=label;var b=document.createElement('b');b.textContent=val||'—';
+  d.appendChild(s);d.appendChild(b);if(extra)d.appendChild(extra);return d;
+}
+function render(){
+  $('out').hidden=false;
+  $('dtype').textContent=pick(res.type);
+  var cf=Math.round(res.conf),pc=$('pconf');pc.textContent=T('conf')+' '+cf+'%';pc.className='pill '+(cf>=75?'ok':cf>=50?'warn':'bad');
+  var pm=$('pmrz');
+  if(res.mrz){pm.textContent=res.mrz.allOk?T('mrzOk'):T('mrzBad');pm.className='pill '+(res.mrz.allOk?'ok':'warn')}
+  else{pm.textContent=T('mrzNone');pm.className='pill mu'}
+  /* key facts */
+  var f=$('facts');f.textContent='';
+  var name=(fieldVal('given')+' '+fieldVal('surname')).trim()||fieldVal('name_ar')||fieldVal('name_en');
+  var idv=fieldVal('idNo')||fieldVal('passportNo')||fieldVal('docNo');
+  var dob=fieldVal('dob'),exp=fieldVal('exp'),a=ageOf(dob),dd=dayDiff(exp),ex=null;
+  if(dd!==null)ex=dd<0?pill('bad',T('expired')+' · '+span(dd)):pill(dd<=90?'warn':'ok',T('valid')+' · '+T('left')+' '+span(dd));
+  f.appendChild(fact(T('fn'),name));f.appendChild(fact(T('fid'),idv));
+  f.appendChild(fact(T('fdob'),dob,a!==null?pill('mu',T('age')+' '+a+' '+T('yrs')):null));
+  f.appendChild(fact(T('fexp'),exp,ex));f.appendChild(fact(T('fnat'),fieldVal('nat')));
+  /* fields */
+  var box=$('fields');box.textContent='';
+  var xi=0,xd=0;
+  res.fields.forEach(function(fl){
+    var row=document.createElement('div');row.className='fr';
+    var lab=document.createElement('div');lab.className='fl';
+    var n='';if(fl.key==='x_id'){xi++;n=' '+xi}if(fl.key==='x_date'){xd++;n=' '+xd}
+    lab.appendChild(document.createTextNode(lbl(fl.key)+n));
+    if(fl.ok===true)lab.appendChild(pill('ok',T('bOk')));else if(fl.ok==='fix')lab.appendChild(pill('warn',T('bFix')));else if(fl.ok===false)lab.appendChild(pill('bad',T('bBad')));
+    else lab.appendChild(pill('mu',fl.src==='mrz'?T('sMrzS'):fl.src==='derived'?T('sDer'):fl.src==='auto'?T('sAuto'):T('sTxt')));
+    var inp=document.createElement('input');inp.className='fv'+(NUMK[fl.key]?' num':'');inp.setAttribute('dir',NUMK[fl.key]?'ltr':'auto');inp.value=pick(fl.v);
+    inp.oninput=function(){fl.v=inp.value;fl.edited=true;refreshFacts()};
+    var btn=document.createElement('button');btn.className='cpb';btn.textContent=T('copy');btn.onclick=function(){doCopy(inp.value,btn)};
+    row.appendChild(lab);row.appendChild(inp);row.appendChild(btn);box.appendChild(row);
+  });
+  /* mrz */
+  $('mrzCard').hidden=!res.mrz;
+  if(res.mrz){$('mrz').textContent=res.mrz.lines.join('\n');$('mrzn').textContent=res.mrz.allOk?T('mrzNoteOk'):T('mrzNoteBad')}
+  $('raw').textContent=res.rows.join('\n');
+}
+var rfT=null;
+function refreshFacts(){clearTimeout(rfT);rfT=setTimeout(function(){var y=window.scrollY;render();window.scrollTo(0,y)},600)}
+/* ---------- copy / export ---------- */
+function fb(t){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(e){}a.remove()}
+function doCopy(t,btn){
+  function ok(){if(btn){btn.textContent=T('copied');btn.classList.add('ok');setTimeout(function(){btn.textContent=T('copy');btn.classList.remove('ok')},1200)}}
+  try{navigator.clipboard.writeText(t).then(ok,function(){fb(t);ok()})}catch(e){fb(t);ok()}
+}
+function pairs(){var out=[],xi=0,xd=0;res.fields.forEach(function(f){var n='';if(f.key==='x_id'){xi++;n=' '+xi}if(f.key==='x_date'){xd++;n=' '+xd}out.push([lbl(f.key)+n,String(pick(f.v)),f.key])});return out}
+$('cpAll').onclick=function(){if(!res)return;doCopy(pairs().map(function(p){return p[0]+': '+p[1]}).join('\n'),$('cpAll'))};
+function save(name,type,data){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:type}));a.download=name;document.body.appendChild(a);a.click();a.remove()}
+$('dlJ').onclick=function(){
+  if(!res)return;var o={type:pick(res.type),confidence:Math.round(res.conf),fields:{},mrz:res.mrz?res.mrz.lines:null,raw_text:res.rows.join('\n')};
+  pairs().forEach(function(p){o.fields[p[0]]=p[1]});save('document-data.json','application/json',JSON.stringify(o,null,2));
+};
+$('dlC').onclick=function(){
+  if(!res)return;function q(s){return '"'+String(s).replace(/"/g,'""')+'"'}
+  var rows=[[q(L==='ar'?'الحقل':'Field'),q(L==='ar'?'القيمة':'Value')].join(',')];
+  pairs().forEach(function(p){rows.push([q(p[0]),q(p[1])].join(','))});
+  save('document-data.csv','text/csv;charset=utf-8','\ufeff'+rows.join('\r\n'));
+};
+[].forEach.call(document.querySelectorAll('.lang button'),function(b){b.onclick=function(){applyLang(b.getAttribute('data-l'))}});
+applyLang('ar');
+pollStatus();
+})();
+</script>
+</body>
+</html>
